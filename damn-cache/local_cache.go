@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 )
 
 type localCache struct {
@@ -27,26 +28,18 @@ func (l *localCache) Get(ctx context.Context, key string) (any, error) {
 	return val, nil
 }
 
-func (l *localCache) Set(ctx context.Context, key string, value any) error {
-	l.lock.RLock()
-	_, ok := l.data[key]
-	if ok {
-		return errors.New("Key Already Exists")
-	}
-	l.lock.RUnlock()
+func (l *localCache) Set(ctx context.Context, key string, value any, expire time.Duration) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	_, ok = l.data[key]
-	if ok {
-		return errors.New("Key Already Exists")
-	}
 	l.data[key] = value
 	return nil
 }
 
 func (l *localCache) Delete(ctx context.Context, key string) error {
-	//TODO implement me
-	panic("implement me")
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	delete(l.data, key)
+	return nil
 }
 
 func (l *localCache) Clear(ctx context.Context) {
