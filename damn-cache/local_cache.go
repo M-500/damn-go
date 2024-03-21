@@ -28,8 +28,20 @@ func (l *localCache) Get(ctx context.Context, key string) (any, error) {
 }
 
 func (l *localCache) Set(ctx context.Context, key string, value any) error {
-	//TODO implement me
-	panic("implement me")
+	l.lock.RLock()
+	_, ok := l.data[key]
+	if ok {
+		return errors.New("Key Already Exists")
+	}
+	l.lock.RUnlock()
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	_, ok = l.data[key]
+	if ok {
+		return errors.New("Key Already Exists")
+	}
+	l.data[key] = value
+	return nil
 }
 
 func (l *localCache) Delete(ctx context.Context, key string) error {
